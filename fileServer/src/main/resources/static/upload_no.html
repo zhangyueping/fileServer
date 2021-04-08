@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>手动上传</title>
+</head>
+<!--引入CSS-->
+<link rel="stylesheet" type="text/css" href="webuploader.css">
+<script src="jquery-1.11.1.js"></script>
+<script src="webuploader.js"></script>
+<style>
+    .upload-container, #upload-list{width: 500px; margin: 0 auto; }
+    .upload-container{cursor: pointer; border-radius: 15px; background: #EEEFFF; height: 200px;}
+     #upload-list{height: 100px; border: 1px solid #EEE; border-radius: 5px; margin-top: 10px; padding: 10px 20px;}
+    .upload-container>span{widows: 100%; text-align: center; color: gray; display: block; padding-top: 15%;}
+    .upload-item{margin-top: 5px; padding-bottom: 5px; border-bottom: 1px dashed gray;}
+    .percentage{height: 5px; background: green;}
+    .btn-delete, .btn-retry{cursor: pointer; color: gray;}
+    .btn-delete:hover{color: orange;}
+    .btn-retry:hover{color: green;}
+</style>
+<!--引入JS-->
+<body>
+<div  id="selectFile">
+    <span>点击或将文件拖拽至此上传</span>
+</div>
+<div id="upload-list">
+</div>
+<button id="uploadFile" onclick='uploadFile()'>点击上传文件</button>
+
+</body>
+
+<script>
+    $(function(){
+        initUploader();
+    })
+
+    var uplaoder="";
+    //初始化WebUploader组件
+    function initUploader(){
+        uploader = WebUploader.create({
+            swf: 'Uploader.swf',
+            // 文件接收服务端。
+            server: 'http://localhost:8080/upload',// 文件接收服务端。
+            // 选择文件的按钮。可选。
+            // 内部根据当前运行是创建，可能是input元素，也可能是flash.
+            pick:'#selectFile',
+            // 不压缩image, 默认如果是jpeg，文件上传前会压缩一把再上传！
+            multiple: true, // 选择多个
+            chunked: true,// 开启分片上传。
+            threads: 20, // 上传并发数。允许同时最大上传进程数。
+            method: 'POST', // 文件上传方式，POST或者GET。
+            fileSizeLimit: 1024*1024*1024*10, //验证文件总大小是否超出限制, 超出则不允许加入队列。
+            fileSingleSizeLimit: 1024*1024*1024, //验证单个文件大小是否超出限制, 超出则不允许加入队列。
+            fileVal:'upload' // [默认值：'file'] 设置文件上传域的name。
+            /*formData:{"filecat":"国家标准"}*/
+        });
+
+        // 当有文件被添加进队列的时候
+        uploader.on('fileQueued', function (file) {
+            var html = '<div class="upload-item"><span>文件名：'+file.name+'</span><div class="percentage '+file.id+'" style="width: 0%;"></div></div>';
+            /*var html = '<div class="upload-item"><span>文件名：'+file.name+'</span><span data-file_id="'+file.id+'" class="btn-delete">删除</span><span data-file_id="'+file.id+'" class="btn-retry">重试</span><div class="percentage '+file.id+'" style="width: 0%;"></div></div>';*/
+            $('#upload-list').append(html);
+        });
+        // 文件上传过程中创建进度条实时显示。
+        uploader.on('uploadProgress', function (file, percentage) {
+            var width = $('.upload-item').width();
+            $('.'+file.id).width(width*percentage);
+        });
+
+        uploader.on('uploadSuccess', function (file, response) {
+            if (response._raw.length > 0) {
+                alert('上传成功');
+            } else {
+                alert("上传失败");
+            }
+        });
+
+        uploader.on('uploadError', function (file, response) {
+            alert('上传出错');
+        });
+
+        uploader.on('uploadComplete', function (file, response) {
+            console.log(uploader.getFiles());
+        });
+
+        //动态赋值
+        uploader.on("uploadBeforeSend", function(object, data,header) {
+            // 修改data可以控制发送哪些携带数据。
+            /*data.user = $("#username").val();*/
+            data.user = "国家标准";
+        });
+    }
+    //上传文件
+    function uploadFile(){
+        var dd = uploader.getFiles().length;
+        /*var  name = $("#txtName").val();*/
+
+        /*var  name = "国家标准";*/
+
+/*        if (!name || name.length == 0) {
+            alert("请填写名称");
+            return false;
+        }*/
+        /*var obj = new Object();
+        obj.name = name;
+
+        uploader.options.formData = obj;*/
+/*        var formData = {"filecat":"国家标准"};*/
+        if (dd > 0) {
+            /*uploader.options.formData = {"filecat":"国家标准"};*/
+            uploader.upload();
+        } else {
+            alert("请选择文件！");
+        }
+    }
+
+</script>
+</html>
